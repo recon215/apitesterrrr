@@ -67,12 +67,12 @@ app.post('/upgrade', (req, res) => {
             return res.status(500).json({ error: 'Database error' });
         }
 
-        // Check if the key does not exist
+        // If key does not exist
         if (keyResults.length === 0) {
             return res.status(403).json({ error: 'Invalid key' });
         }
 
-        // Check if the key has been used in the last 2 weeks
+        // Check if the key was used in the last 2 weeks
         const lastUsedDate = new Date(keyResults[0].used_timestamp);
         const twoWeeksAgo = new Date();
         twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
@@ -81,7 +81,7 @@ app.post('/upgrade', (req, res) => {
             // Calculate the date when the key can be used again
             const nextAvailableDate = new Date(lastUsedDate);
             nextAvailableDate.setDate(nextAvailableDate.getDate() + 14);
-            return res.status(403).json({ error: `This key cannot be used until ${nextAvailableDate.toISOString().slice(0, 10)}` });
+            return res.status(403).json({ error: `This key cannot be used until ${nextAvailableDate.toDateString()}` });
         }
 
         // Fetch a random invite and address from the specified country's table
@@ -135,6 +135,7 @@ app.post('/upgrade', (req, res) => {
         });
     });
 });
+
 
 
 
