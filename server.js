@@ -65,11 +65,7 @@ app.post('/upgrade', (req, res) => {
         if (error) {
             console.error('Error querying database:', error);
             return res.status(500).json({ error: 'Database error' });
-        }
-
-        if (keyResults.length === 0) {
-            return res.status(403).json({ error: 'Invalid or already used key' });
-        }
+        
 
         // Check if the key was used in the last 2 weeks
         const lastUsedDate = new Date(keyResults[0].used_timestamp);
