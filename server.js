@@ -58,6 +58,8 @@ app.get('/stock', (req, res) => {
 app.post('/upgrade', (req, res) => {
     const { Key, Email, CountryCode } = req.query;
 
+    res.setHeader('Access-Control-Allow-Origin', '*');
+
     // Check if all required parameters are provided
     if (!Key || !Email || !CountryCode) {
         return res.status(400).json({ error: 'Missing parameters' });
