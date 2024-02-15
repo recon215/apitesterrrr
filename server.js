@@ -59,28 +59,29 @@ app.post('/upgrade', (req, res) => {
         return res.status(400).json({ error: 'Missing parameters' });
     }
 
-    // Check if the key is valid and not used
-    const keyQuery = 'SELECT * FROM codes WHERE `key` = ? AND used = 0';
+    // Check if the key exists
+    const keyQuery = 'SELECT * FROM codes WHERE `key` = ?';
     connection.query(keyQuery, [Key], (error, keyResults) => {
         if (error) {
             console.error('Error querying database:', error);
             return res.status(500).json({ error: 'Database error' });
         }
 
-        // Check if the key exists
+        // Check if the key does not exist
         if (keyResults.length === 0) {
-            return res.status(404).json({ error: 'Invalid key' });
+            return res.status(403).json({ error: 'Invalid key' });
         }
 
-        // Check if the key was used in the last 2 weeks
+        // Check if the key has been used in the last 2 weeks
         const lastUsedDate = new Date(keyResults[0].used_timestamp);
         const twoWeeksAgo = new Date();
         twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
 
         if (lastUsedDate > twoWeeksAgo) {
-            // Calculate the number of days until the key can be used again
-            const daysUntilAvailable = Math.ceil((lastUsedDate.getTime() - twoWeeksAgo.getTime()) / (1000 * 3600 * 24));
-            return res.status(403).json({ error: `This key cannot be used until ${daysUntilAvailable} days from the last usage` });
+            // Calculate the date when the key can be used again
+            const nextAvailableDate = new Date(lastUsedDate);
+            nextAvailableDate.setDate(nextAvailableDate.getDate() + 14);
+            return res.status(403).json({ error: `This key cannot be used until ${nextAvailableDate.toISOString().slice(0, 10)}` });
         }
 
         // Fetch a random invite and address from the specified country's table
