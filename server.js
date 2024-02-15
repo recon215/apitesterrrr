@@ -52,10 +52,10 @@ app.get('/stock', (req, res) => {
 });
 
 app.post('/upgrade', (req, res) => {
-    const { Key, Email, CountryCode} = req.query;
+    const { Key, Email, CountryCode } = req.query;
 
     // Check if all required parameters are provided
-    if (!Key || !Email ) {
+    if (!Key || !Email || !CountryCode) {
         return res.status(400).json({ error: 'Missing parameters' });
     }
 
@@ -65,7 +65,12 @@ app.post('/upgrade', (req, res) => {
         if (error) {
             console.error('Error querying database:', error);
             return res.status(500).json({ error: 'Database error' });
-        
+        }
+
+        // Check if the key exists
+        if (keyResults.length === 0) {
+            return res.status(404).json({ error: 'Invalid key' });
+        }
 
         // Check if the key was used in the last 2 weeks
         const lastUsedDate = new Date(keyResults[0].used_timestamp);
