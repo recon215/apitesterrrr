@@ -81,7 +81,7 @@ app.post('/upgrade', (req, res) => {
             // Calculate the date when the key can be used again
             const nextAvailableDate = new Date(lastUsedDate);
             nextAvailableDate.setDate(nextAvailableDate.getDate() + 14);
-            return res.status(403).json({ error: `This key cannot be used until ${nextAvailableDate.toDateString()}` });
+            return res.status(401).json({ error: `This key cannot be used until ${nextAvailableDate.toDateString()}` });
         }
 
         // Fetch a random invite and address from the specified country's table
