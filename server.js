@@ -130,7 +130,16 @@ app.post('/upgrade', (req, res) => {
                     return res.status(500).json({ error: 'Database error' });
                 }
 
-                res.status(200).json({ message: 'Upgrade successful' });
+                // Delete the invite and address that was sent to the user
+                const deleteQuery = `DELETE FROM ${CountryCode}_invites WHERE invite = ? AND address = ?`;
+                connection.query(deleteQuery, [invite, address], (deleteError, deleteResults) => {
+                    if (deleteError) {
+                        console.error('Error deleting invite and address:', deleteError);
+                        return res.status(500).json({ error: 'Database error' });
+                    }
+
+                    res.status(200).json({ message: 'Upgrade successful' });
+                });
             });
         });
     });
