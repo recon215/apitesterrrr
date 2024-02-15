@@ -1,14 +1,10 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const cors = require('cors'); // Add cors middleware
 const app = express();
 const mysql = require('mysql');
 const nodemailer = require('nodemailer');
 const smtpTransport = require('nodemailer-smtp-transport');
-const port = process.env.PORT || 3000;
-app.use(cors()); // Enable CORS
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+const port = process.env.PORT || 3000; // Adjust to use the port provided by Heroku dynamically
 
 const connection = mysql.createConnection({
     host: 'sql5.freesqldatabase.com',
@@ -56,12 +52,10 @@ app.get('/stock', (req, res) => {
 });
 
 app.post('/upgrade', (req, res) => {
-    const { Key, Email, CountryCode } = req.query;
-
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    const { Key, Email, CountryCode} = req.query;
 
     // Check if all required parameters are provided
-    if (!Key || !Email || !CountryCode) {
+    if (!Key || !Email ) {
         return res.status(400).json({ error: 'Missing parameters' });
     }
 
@@ -75,6 +69,17 @@ app.post('/upgrade', (req, res) => {
 
         if (keyResults.length === 0) {
             return res.status(403).json({ error: 'Invalid or already used key' });
+        }
+
+        // Check if the key was used in the last 2 weeks
+        const lastUsedDate = new Date(keyResults[0].used_timestamp);
+        const twoWeeksAgo = new Date();
+        twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+
+        if (lastUsedDate > twoWeeksAgo) {
+            // Calculate the number of days until the key can be used again
+            const daysUntilAvailable = Math.ceil((lastUsedDate.getTime() - twoWeeksAgo.getTime()) / (1000 * 3600 * 24));
+            return res.status(403).json({ error: `This key cannot be used until ${daysUntilAvailable} days from the last usage` });
         }
 
         // Fetch a random invite and address from the specified country's table
@@ -123,11 +128,12 @@ app.post('/upgrade', (req, res) => {
                     return res.status(500).json({ error: 'Database error' });
                 }
 
-                res.status(200).json({ message: 'Upgrade successful'});
+                res.status(200).json({ message: 'Upgrade successful' });
             });
         });
     });
 });
+
 
 
 app.get('/renew', (req, res) => {
